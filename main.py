@@ -10,8 +10,8 @@ from time import localtime
 
 def filter_raw_message(text):
     try:
-        found = re.search('"m":"(.+?)",', text).group(1)
-        found2 = re.search('"p":(.+?"}"])}', text).group(1)
+        found = re.search('"m":"(.+?)",', text)[1]
+        found2 = re.search('"p":(.+?"}"])}', text)[1]
         print(found)
         print(found2)
         return found1, found2
@@ -22,17 +22,17 @@ def filter_raw_message(text):
 def generateSession():
     stringLength=12
     letters = string.ascii_lowercase
-    random_string= ''.join(random.choice(letters) for i in range(stringLength))
-    return "qs_" +random_string
+    random_string = ''.join(random.choice(letters) for _ in range(stringLength))
+    return f"qs_{random_string}"
 
 def generateChartSession():
     stringLength=12
     letters = string.ascii_lowercase
-    random_string= ''.join(random.choice(letters) for i in range(stringLength))
-    return "cs_" +random_string
+    random_string = ''.join(random.choice(letters) for _ in range(stringLength))
+    return f"cs_{random_string}"
 
 def prependHeader(st):
-    return "~m~" + str(len(st)) + "~m~" + st
+    return f"~m~{len(st)}~m~" + st
 
 def constructMessage(func, paramList):
     #json_mylist = json.dumps(mylist, separators=(',', ':'))
@@ -51,14 +51,14 @@ def sendMessage(ws, func, args):
     ws.send(createMessage(func, args))
 
 def generate_csv(a):
-    out= re.search('"s":\[(.+?)\}\]', a).group(1)
+    out = re.search('"s":\[(.+?)\}\]', a)[1]
     x=out.split(',{\"')
-    
+
     with open('data_file.csv', mode='w', newline='') as data_file:
         employee_writer = csv.writer(data_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-    
+
         employee_writer.writerow(['index', 'date', 'open', 'high', 'low', 'close', 'volume'])
-        
+
         for xi in x:
             xi= re.split('\[|:|,|\]', xi)
             print(xi)
@@ -68,8 +68,7 @@ def generate_csv(a):
 # add txt output file            
 def create_output_file():
     now = localtime()
-    fname = f"{now[0]}-{now[1]}-{now[2]}.txt"
-    return fname            
+    return f"{now[0]}-{now[1]}-{now[2]}.txt"            
 
 
 # Initialize the headers needed for the websocket connection
@@ -87,16 +86,16 @@ headers = json.dumps({
     # 'Upgrade': 'websocket'
 })
 
-    
+
 # Then create a connection to the tunnel
 ws = create_connection(
     'wss://data.tradingview.com/socket.io/websocket',headers=headers)
 
 session= generateSession()
-print("session generated {}".format(session))
+print(f"session generated {session}")
 
 chart_session= generateChartSession()
-print("chart_session generated {}".format(chart_session))
+print(f"chart_session generated {chart_session}")
 
 # Then send a message through the tunnel 
 sendMessage(ws, "set_auth_token", ["unauthorized_user_token"])
@@ -127,5 +126,5 @@ while True:
     except Exception as e:
         print(e)
         break
-    
+
 generate_csv(a)
